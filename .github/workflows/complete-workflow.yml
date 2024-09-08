@@ -12,21 +12,30 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         name: Checkout code
+
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'adopt'
-          cache: maven
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
       - name: Build with Maven and run SonarCloud analysis
         run: mvn -B verify sonar:sonar \
               -Dsonar.projectKey=microserviciosProductOrder \
               -Dsonar.organization=walyson-scarazzati \
               -Dsonar.host.url=https://sonarcloud.io \
               -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Run unit tests
+        run: mvn test
 
   security:
     runs-on: ubuntu-latest
@@ -35,6 +44,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         name: Checkout code
+
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/maven@v1
         continue-on-error: true
@@ -48,6 +58,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
       - name: ZAP Scan
         uses: zaproxy/action-full-scan@v0.10.0
         with:
