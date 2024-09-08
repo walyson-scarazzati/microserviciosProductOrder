@@ -35,9 +35,9 @@ jobs:
         with:
           ref: master
       - name: ZAP Scan
-        uses: zaproxy/action-baseline@v0.6.1
+        uses: zaproxy/action-full-scan@v0.10.0
         with:
-          docker_name: 'owasp/zap2docker-stable'
+          docker_name: 'owasp/zap2docker'
           target: 'http://testphp.vulnweb.com/'
           rules_file_name: '.zap/rules.tsv'
           cmd_options: '-a'
