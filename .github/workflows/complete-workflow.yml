@@ -1,43 +1,87 @@
-name: Build code, run unit test, run SAST, SCA, DAST security scans
-on: push
+name: Build, Test, and Scan
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Run unit tests and SAST scan on the source code 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'adopt'
-        cache: maven
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-  security:
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build and Test with Maven
+        run: mvn -B clean verify
+
+  sonarcloud:
     runs-on: ubuntu-latest
     needs: build
-    name: Run the SCA scan on the source code
     steps:
-      - uses: actions/checkout@master
-      - name: RunSnyk to check for vulnerabilities
-        uses: snyk/actions/maven@master
-        continue-on-error: true
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Run SonarCloud Analysis
+        run: mvn -B sonar:sonar
         env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
   zap_scan:
     runs-on: ubuntu-latest
-    needs: security
-    name: Run DAST scan on the web application
+    needs: build
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          ref: master
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Start Spring Boot applications
+        run: |
+          nohup mvn -pl discovery-server spring-boot:run > app-discovery-server.log 2>&1 &
+          nohup mvn -pl api-gateway spring-boot:run > app-api-gateway.log 2>&1 &
+          nohup mvn -pl producto-service spring-boot:run > app-producto-service.log 2>&1 &
+          nohup mvn -pl order-service spring-boot:run > app-order-service.log 2>&1 &
+          nohup mvn -pl inventario-service spring-boot:run > app-inventario-service.log 2>&1 &
+          sleep 60  # Wait for the applications to start
+
       - name: ZAP Scan
         uses: zaproxy/action-full-scan@v0.10.0
         with:
           docker_name: 'zaproxy/zap-stable'
-          target: 'http://testphp.vulnweb.com/'
+          target: 'http://localhost:8083'  # Targeting the API Gateway
           rules_file_name: '.zap/rules.tsv'
           cmd_options: '-a'
+
+      - name: Stop Spring Boot applications
+        run: |
+          pkill -f 'mvn spring-boot:run'
