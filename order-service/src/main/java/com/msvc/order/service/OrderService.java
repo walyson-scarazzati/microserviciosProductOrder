@@ -44,8 +44,7 @@ public class OrderService {
 				.collect(Collectors.toList());
 		
 		System.out.println("Codigos sku:" + codigoSku);
-        // http://inventario-service/api/inventario"
-		// http://localhost:8082/api/inventario
+
 		InventarioResponse[] inventarioResponsesArray = webClientBuilder.build().get()
 		        .uri("http://inventario-service/api/inventario", uriBuilder -> uriBuilder.queryParam("codigoSku", codigoSku).build())
 		        .retrieve()
