@@ -1,4 +1,4 @@
-name: Build code, run unit test, run SAST, SCA, DAST security scans
+name: Build code, run unit tests, and perform security scans
 
 on:
   push:
@@ -28,7 +28,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Build with Maven and run SonarCloud analysis
-        run: mvn -B verify sonar:sonar \
+        run: mvn -B clean verify sonar:sonar \
               -Dsonar.projectKey=microserviciosProductOrder \
               -Dsonar.organization=walyson-scarazzati \
               -Dsonar.host.url=https://sonarcloud.io \
