@@ -10,8 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.msvc.inventario.dto.InventarioResponse;
 import com.msvc.inventario.repository.InventarioRepository;
 
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 
+@Slf4j
 @Service
 public class InventarioService {
 	
@@ -38,8 +41,12 @@ public class InventarioService {
     }
 	
     @Transactional(readOnly = true)
+    @SneakyThrows
     public List<InventarioResponse> isInStock(List<String> codigoSku) {
-        System.out.println("Received SKU list: " + codigoSku);
+    	log.info("Wait started");
+    	Thread.sleep(10000);
+    	log.info("wait end");
+    	System.out.println("Received SKU list: " + codigoSku);
         List<InventarioResponse> responses = inventarioRepository.findByCodigoSkuIn(codigoSku).stream()
                 .map(inventario -> {
                     System.out.println("Processing SKU: " + inventario.getCodigoSku());
