@@ -20,7 +20,7 @@ jobs:
         cache: maven
     - name: Build with Maven and analyze with SonarCloud
       run: mvn -B verify sonar:sonar -Dsonar.projectKey=microserviciosProductOrder -Dsonar.organization=walyson-scarazzati -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=$SONAR_TOKEN
-      working-directory: ./Zup
+      #working-directory: ./Zup
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
