@@ -25,10 +25,10 @@ public class SecurityConfig {
                
         return serverHttpSecurity.build();
     }
-	@Bean
-	public ReactiveJwtDecoder jwtDecoder() {
-		return NimbusReactiveJwtDecoder
-				.withIssuerLocation("http://localhost:8081/realms/spring-boot-microservices-realm").build();
-	}
+//	@Bean
+//	public ReactiveJwtDecoder jwtDecoder() {
+//		return NimbusReactiveJwtDecoder
+//				.withIssuerLocation("http://localhost:8081/realms/spring-boot-microservices-realm").build();
+//	}
 
 }

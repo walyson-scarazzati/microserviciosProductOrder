@@ -21,30 +21,11 @@ public class InventarioService {
 	@Autowired
 	private InventarioRepository inventarioRepository;
 	
-	@Transactional(readOnly = true)
-    public boolean isInStock2(String codigoSku) {
-	return inventarioRepository.findByCodigoSku(codigoSku).isPresent();
-	}
-	
-	@Transactional(readOnly = true)
-    public List<InventarioResponse> isInStock3(List<String> codigoSku) {
-        System.out.println("Received SKU list: " + codigoSku);
-        return inventarioRepository.findByCodigoSkuIn(codigoSku).stream()
-                .map(inventario -> 
-                     InventarioResponse.builder()
-                        .codigoSku(inventario.getCodigoSku())
-                        .inStock(inventario.getCantidad() > 0)
-                        .build()
-                ).collect(Collectors.toList());
-        
-      
-    }
-	
     @Transactional(readOnly = true)
     @SneakyThrows
     public List<InventarioResponse> isInStock(List<String> codigoSku) {
     	log.info("Wait started");
-    	Thread.sleep(10000);
+    	//Thread.sleep(10000);
     	log.info("wait end");
     	System.out.println("Received SKU list: " + codigoSku);
         List<InventarioResponse> responses = inventarioRepository.findByCodigoSkuIn(codigoSku).stream()

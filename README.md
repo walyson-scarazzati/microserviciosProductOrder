@@ -8,10 +8,18 @@ https://www.udemy.com/course/curso-de-microservicios-con-spring-boot-y-spring-cl
 
 <h1>Technologies</h1>
 <ul>
-  <li>Spring Boot</li>
+  <li>Spring Boot 2.7.8</li>
+  <li>Spring Cloud 2021.0.5</li>
   <li>Microservices</li>
   <li>RestTemplate</li>
   <li>Load Balancer</li>
   <li>Eureka Server and Client</li>
   <li>API Gateway</li>
+  <li>Resilience4j</li>
+  <li>Spring Cloud Sleuth</li>
+  <li>Zipkin</li>
+  <li>MySQL</li>
+  <li>MongoDB</li>
+  <li>Docker</li>
+  <li>Keycloak</li>
 </ul>

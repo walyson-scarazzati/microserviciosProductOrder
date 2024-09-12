@@ -24,17 +24,18 @@ public class OrderController {
 	@Autowired
 	private OrderService orderService;
 
-	@PostMapping
-	@ResponseStatus(HttpStatus.CREATED)
-	@CircuitBreaker(name = "inventario", fallbackMethod = "fallbackMethod")
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @CircuitBreaker(name = "inventario",fallbackMethod = "fallBackMethod")
     @TimeLimiter(name = "inventario")
     @Retry(name = "inventario")
-	public CompletableFuture<String> realizarPedido(@RequestBody OrderRequest orderRequest) {
-		return CompletableFuture.supplyAsync(() -> orderService.placeOrder(orderRequest));
-	}
+    public CompletableFuture<String> realizarPedido(@RequestBody OrderRequest orderRequest){
+        return CompletableFuture.supplyAsync(() -> orderService.placeOrder(orderRequest));
+    }
 
-	public CompletableFuture<String> fallBackMethod(OrderRequest orderRequest, RuntimeException runtimeException) {
-		return CompletableFuture.supplyAsync(() -> "Oops! Ha ocurrido un error al realizar el pedido");
-	}
+    public CompletableFuture<String> fallBackMethod(OrderRequest orderRequest,RuntimeException runtimeException){
+        return CompletableFuture.supplyAsync(() -> "Oops! Ha ocurrido un error al realizar el pedido");
+    }
 
+	
 }

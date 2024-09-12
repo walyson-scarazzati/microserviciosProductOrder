@@ -17,6 +17,9 @@ import com.msvc.order.model.Order;
 import com.msvc.order.model.OrderLineItems;
 import com.msvc.order.repository.OrderRepository;
 
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
+
 @Service
 @Transactional
 public class OrderService {
@@ -27,40 +30,52 @@ public class OrderService {
 	@Autowired
 	private WebClient.Builder webClientBuilder;
 	
+    @Autowired
+    private Tracer tracer;
+	
 	 
-	@Transactional(readOnly = true)
-	public String placeOrder(OrderRequest orderRequest) {
-		Order order = new Order();
-		order.setNumeroPedido(UUID.randomUUID().toString());
-		
-		List<OrderLineItems> orderLineItems = orderRequest.getOrderLineItemsDtoList()
-		.stream()
-		.map(this::mapToDto)
-		.collect(Collectors.toList());
-		order.setOrderLineItems(orderLineItems);
-		
-		List<String> codigoSku = order.getOrderLineItems().stream()
-				.map(OrderLineItems::getCodigoSku)
-				.collect(Collectors.toList());
-		
-		System.out.println("Codigos sku:" + codigoSku);
+    public String placeOrder(OrderRequest orderRequest){
+        Order order = new Order();
+        order.setNumeroPedido(UUID.randomUUID().toString());
 
-		InventarioResponse[] inventarioResponsesArray = webClientBuilder.build().get()
-		        .uri("http://inventario-service/api/inventario", uriBuilder -> uriBuilder.queryParam("codigoSku", codigoSku).build())
-		        .retrieve()
-	                .bodyToMono(InventarioResponse[].class)
-	                .block();
-		
-		boolean allProductosInStock = Arrays.stream(inventarioResponsesArray)
-				.allMatch(InventarioResponse::isInStock);
-		
-		if(allProductosInStock) {
-			orderRepository.save(order);
-			return "Pedido ordenado con exito";
-		}else {
-			throw new IllegalArgumentException("El producto no esta en stock");
-		}
-	}
+        List<OrderLineItems> orderLineItems = orderRequest.getOrderLineItemsDtoList()
+                .stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+        order.setOrderLineItems(orderLineItems);
+
+
+        List<String> codigoSku = order.getOrderLineItems().stream()
+                        .map(OrderLineItems::getCodigoSku)
+                                .collect(Collectors.toList());
+
+        System.out.println("Codigos sku : " + codigoSku);
+
+        Span inventarioServiceLookup = tracer.nextSpan().name("InventarioServiceLookup");
+
+        try(Tracer.SpanInScope isLookup = tracer.withSpan(inventarioServiceLookup.start())){
+            inventarioServiceLookup.tag("call","inventario-service");
+
+            InventarioResponse[] inventarioResponseArray = webClientBuilder.build().get()
+                    .uri("http://inventario-service/api/inventario",uriBuilder -> uriBuilder.queryParam("codigoSku",codigoSku).build())
+                    .retrieve()
+                    .bodyToMono(InventarioResponse[].class)
+                    .block();
+
+            boolean allProductosInStock = Arrays.stream(inventarioResponseArray)
+                    .allMatch(InventarioResponse::isInStock);
+
+            if(allProductosInStock){
+                orderRepository.save(order);
+                return "Pedido ordenado con exito";
+            }
+            else{
+                throw new IllegalArgumentException("El producto no esta en stock");
+            }
+        }finally {
+            inventarioServiceLookup.end();
+        }
+    }
 	
 	private OrderLineItems mapToDto(OrderLineItemsDto orderLineItemsDto) {
 		OrderLineItems orderLineItems = new OrderLineItems();
