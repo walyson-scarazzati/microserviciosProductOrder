@@ -6,6 +6,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -13,16 +16,17 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.msvc.order.dto.InventarioResponse;
 import com.msvc.order.dto.OrderLineItemsDto;
 import com.msvc.order.dto.OrderRequest;
+import com.msvc.order.event.OrderPlacedEvent;
 import com.msvc.order.model.Order;
 import com.msvc.order.model.OrderLineItems;
 import com.msvc.order.repository.OrderRepository;
 
-import org.springframework.cloud.sleuth.Span;
-import org.springframework.cloud.sleuth.Tracer;
-
 @Service
 @Transactional
 public class OrderService {
+	
+	@Autowired
+	private KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate;
 	
 	@Autowired
 	private OrderRepository orderRepository;
@@ -67,6 +71,7 @@ public class OrderService {
 
             if(allProductosInStock){
                 orderRepository.save(order);
+                kafkaTemplate.send("notificationTopic", new OrderPlacedEvent(order.getNumeroPedido()));
                 return "Pedido ordenado con exito";
             }
             else{

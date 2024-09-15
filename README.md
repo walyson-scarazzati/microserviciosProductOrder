@@ -22,4 +22,8 @@ https://www.udemy.com/course/curso-de-microservicios-con-spring-boot-y-spring-cl
   <li>MongoDB</li>
   <li>Docker</li>
   <li>Keycloak</li>
+  <li>Github Actions with DevSecOps SonarCloud, Snyk and ZAP Scan</li>
+  <li>Kafka</li>
+  <li>Prometheus</li>
+  <li>Grafana</li>
 </ul>
