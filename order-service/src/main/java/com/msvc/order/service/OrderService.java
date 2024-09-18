@@ -1,5 +1,6 @@
 package com.msvc.order.service;
 
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.msvc.order.config.rabbitmq.Producer;
 import com.msvc.order.dto.InventarioResponse;
 import com.msvc.order.dto.OrderLineItemsDto;
 import com.msvc.order.dto.OrderRequest;
@@ -21,6 +23,9 @@ import com.msvc.order.model.Order;
 import com.msvc.order.model.OrderLineItems;
 import com.msvc.order.repository.OrderRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 @Transactional
 public class OrderService {
@@ -36,7 +41,9 @@ public class OrderService {
 	
     @Autowired
     private Tracer tracer;
-	
+
+    @Autowired
+    private Producer producer;
 	 
     public String placeOrder(OrderRequest orderRequest){
         Order order = new Order();
@@ -71,6 +78,7 @@ public class OrderService {
 
             if(allProductosInStock){
                 orderRepository.save(order);
+                enviarMensajeConRabbitMQ("Notificacion con RabbitMQ, Pedido ordenado con exito");
                 kafkaTemplate.send("notificationTopic", new OrderPlacedEvent(order.getNumeroPedido()));
                 return "Pedido ordenado con exito";
             }
@@ -81,7 +89,12 @@ public class OrderService {
             inventarioServiceLookup.end();
         }
     }
-	
+
+    private void enviarMensajeConRabbitMQ(String message){
+        log.info("El mensaje '{}' ha sido enviado con exito",message);
+        producer.send(message);
+    }
+
 	private OrderLineItems mapToDto(OrderLineItemsDto orderLineItemsDto) {
 		OrderLineItems orderLineItems = new OrderLineItems();
 		orderLineItems.setPrecio(orderLineItemsDto.getPrecio());

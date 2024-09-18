@@ -82,6 +82,7 @@
         <module>discovery-server</module>
         <module>api-gateway</module>
         <module>notification-service</module>
+        <module>message-service</module>
     </modules>
 
 </project>

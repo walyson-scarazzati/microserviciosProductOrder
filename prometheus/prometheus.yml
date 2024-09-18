@@ -27,3 +27,9 @@ scrape_configs:
       - targets: [ 'localhost:8086' ] #cambiar isto pelo IP local para parar o erro de não mostrar actuator
         labels:
           application: 'Notification Service Application'
+  - job_name: 'message-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+     - targets: [ 'localhost:8091' ] #cambiar isto pelo IP local para parar o erro de não mostrar actuator
+       labels:
+       application: 'Message Service Application'

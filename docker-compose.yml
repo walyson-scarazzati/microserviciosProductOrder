@@ -96,6 +96,13 @@ services:
     networks:
       - mynetwork
 
+  rabbitmq:
+    image: rabbitmq:3.9-management
+    container_name: rabbitmq
+    ports:
+    - 5672:5672
+    - 15672:15672
+
   zipkin:
     image: openzipkin/zipkin
     container_name: zipkin

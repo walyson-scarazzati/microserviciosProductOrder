@@ -19,14 +19,11 @@ public class InventarioController {
 	
 	@Autowired
 	private InventarioService inventarioService;
-	
-	//@GetMapping("{codigoSku}")
+
 	@GetMapping
 	@ResponseStatus(HttpStatus.OK)
-	//public boolean isInStock(@PathVariable("codigoSku") String codigoSku) {
 	public List<InventarioResponse> isInStock(@RequestParam("codigoSku") List<String> codigoSku) {
 		return inventarioService.isInStock(codigoSku);
-	//	return inventarioService.isInStock2(codigoSku);
 	}
 
 }
