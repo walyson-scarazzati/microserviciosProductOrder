@@ -54,6 +54,8 @@ https://www.udemy.com/course/curso-de-microservicios-con-spring-boot-y-spring-cl
    ```
    
  ## Usage
+  - To run this project, first run <b>discovery-server</b> and then <b>api-gateway</b>. The other services do not matter the execution sequence.
+  ![image](https://github.com/user-attachments/assets/4de0eb97-3447-4bdd-8301-9e9e58aa343e)
 
 
 ### Interacting with Application
